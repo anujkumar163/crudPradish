@@ -1,0 +1,567 @@
+package com.praadis.edu.controller;
+
+import static com.praadis.edu.util.ValidationConstants.EMAIL_VALIDATION_PATTERN;
+import static com.praadis.edu.util.ValidationConstants.MOBILE_VALIDATION_PATTERN;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
+import org.springframework.security.web.csrf.CsrfToken;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import com.google.gson.Gson;
+import com.praadis.edu.bean.RegistrationPackageResponseBean;
+import com.praadis.edu.dto.RegistrationDto;
+import com.praadis.edu.dto.RegistrationPackageDto;
+import com.praadis.edu.model.ContactUs;
+import com.praadis.edu.model.CustomerSupport;
+import com.praadis.edu.model.LoginDetail;
+import com.praadis.edu.model.LoginHistory;
+import com.praadis.edu.model.PackageHistory;
+import com.praadis.edu.model.Registration;
+import com.praadis.edu.model.RegistrationPackage;
+import com.praadis.edu.model.RequestDemo;
+import com.praadis.edu.model.SalesInquiry;
+import com.praadis.edu.security.CustomWebAuthenticationDetails;
+import com.praadis.edu.service.ContactUsService;
+import com.praadis.edu.service.CustomerSupportService;
+import com.praadis.edu.service.LoginDetailService;
+import com.praadis.edu.service.LoginHistoryService;
+import com.praadis.edu.service.PackageHistoryService;
+import com.praadis.edu.service.RegistrationPackageService;
+import com.praadis.edu.service.RegistrationService;
+import com.praadis.edu.service.RequestDemoService;
+import com.praadis.edu.service.SalesInquiryService;
+import com.praadis.edu.util.AES;
+import com.praadis.edu.util.BeanToDtoConverter;
+import com.praadis.edu.util.CommonUtility;
+import com.praadis.edu.util.GenericResponse;
+
+@Controller
+@RequestMapping("/web")
+public class LoginController {
+
+  @Autowired
+  private RegistrationService registrationService;
+
+  @Autowired
+  private LoginHistoryService loginHistoryService;
+
+  @Autowired
+  private RegistrationPackageService registrationPackageService;
+
+  @Autowired
+  private PackageHistoryService packageHistoryService;
+
+  @Autowired
+  private LoginDetailService loginDetailService;
+
+  @Autowired
+  private CommonUtility commonUtility;
+
+  @Autowired
+  private ModelMapper modelMapper;
+
+  @Autowired
+  private BeanToDtoConverter beanToDtoConverter;
+
+  @Autowired
+  private ContactUsService contactUsService;
+
+  @Autowired
+  private RequestDemoService requestDemoService;
+
+  @Autowired
+  private SalesInquiryService salesInquiryService;
+
+  @Autowired
+  private CustomerSupportService customerSupportService;
+
+  @Value("${captcha.sitekey}")
+  private String captchaSiteKey;
+
+  @Value("${captcha.secret}")
+  private String captchaSecret;
+
+  @Value("${captcha.url}")
+  private String captchURL;
+
+  @Value("${captcha.to}")
+  private String captchaTo;
+
+  @Value("${support.email.to}")
+  private String supportTo;
+
+
+  @RequestMapping(value = "/loginPage", method = RequestMethod.GET)
+  public ModelAndView loginPage(@RequestParam(value = "error", required = false) String error, @RequestParam(value = "logout", required = false) String logout) {
+    System.out.println("logout:" + logout);
+    ModelAndView model = new ModelAndView();
+    if (error != null) {
+      model.addObject("error", "Invalid Credentials provided.");
+    }
+
+    if (logout != null) {
+      model.addObject("message", "Logged out successfully.");
+    }
+
+    model.setViewName("loginPage");
+    return model;
+  }
+
+  @RequestMapping(value = {"/homePage"}, method = RequestMethod.GET)
+  public ModelAndView homePage() {
+    ModelAndView model = new ModelAndView();
+    model.setViewName("homePage");
+    return model;
+  }
+
+  @RequestMapping(value = "/logout", method = RequestMethod.GET)
+  public String logoutPage(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    if (auth != null) {
+      System.out.println("hfkjdshfkjdhskfjhdskjhfdkjshfkjlsdhflkdjs'd;fsj");
+      String country = "in";
+      if (session != null && session.getAttribute("country") != null) {
+        country = session.getAttribute("country").toString();
+        System.out.println(country);
+      }
+      new SecurityContextLogoutHandler().logout(request, response, auth);
+      session.setAttribute("country", country);
+      System.out.println(session.getAttribute("country"));
+    }
+    return "redirect:/web/login?logout";// You can redirect wherever you
+                                        // want, but generally it's a good
+                                        // practice to show login screen
+                                        // again.
+  }
+
+  @RequestMapping(value = "/appLogin", method = RequestMethod.POST)
+  public void appLogin(HttpServletRequest request) {
+    System.out.println("Hi Meet");
+    System.out.println(request.getParameter("ipAddress"));
+    System.out.println("applogin");
+  }
+
+
+  @RequestMapping(value = {"/loginSuccess"}, method = RequestMethod.GET)
+  public @ResponseBody GenericResponse loginSuccess(HttpSession session, GenericResponse response, RegistrationPackageResponseBean responseBean) {
+
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    auth.setAuthenticated(false);
+    System.out.println("auth :" + new Gson().toJson(auth));
+    response.setStatus(0);
+    final Integer packageTypeId = 1; // for content only
+
+    try {
+      if (auth != null && auth.getName() != null) {
+
+        System.out.println("inside login success of child role.");
+        System.out.println("Hi Meet " + auth.getName());
+        String type = "C";
+        Registration registration = registrationService.findByUsernameAndRegTypeFlag(auth.getName(), type);
+
+        if (registration != null && registration.getRegTypeFlag().equals("C")) {
+          session.setAttribute("registrationId", registration.getId());
+          System.out.println("session reg id :" + session.getAttribute("registrationId"));
+
+          List<RegistrationPackage> registrationPackages = registrationPackageService.findByRegistrationId(registration.getId());
+
+          PackageHistory packageHistory = packageHistoryService.findFirst1ByRegistrationIdAndPackageTypeIdOrderByLastSeenDesc(registration.getId(), packageTypeId);
+          responseBean = new RegistrationPackageResponseBean();
+
+          Type registrationPackagesType = new TypeToken<List<RegistrationPackageDto>>() {}.getType();
+          responseBean.setRegistrationPackages(modelMapper.map(registrationPackages, registrationPackagesType));
+          responseBean.setPackageHistories(beanToDtoConverter.convertPackageHistoryToDto(new ArrayList<PackageHistory>(Arrays.asList(packageHistory))));
+
+          responseBean.setRegistration(modelMapper.map(registration, RegistrationDto.class));
+
+          // update device id in login detail table for logged in
+          // registration
+          String deviceId = ((CustomWebAuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails()).getDeviceId();
+
+          String ipAddress = ((CustomWebAuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails()).getIpAddress();
+          System.out.println("deviceId :" + deviceId);
+          System.out.println("ipAddress :" + ipAddress);
+          try {
+            LoginDetail loginDetail = new LoginDetail();
+            loginDetail.setRegistrationId(registration.getId());
+            loginDetail.setDeviceId(deviceId);
+
+            // find Login Detail By Registration Id
+            LoginDetail loginDetail2 = loginDetailService.findByRegistrationId(registration.getId());
+            if (loginDetail2 != null)
+              loginDetail.setId(loginDetail2.getId());
+            String currtime = ""+System.currentTimeMillis();
+            loginDetail.setDeviceId(currtime);
+            session.setAttribute("webDeviceId", currtime);
+           // System.err.println("web device id hai login controller"+loginDetail);
+            // create Login Detail
+            loginDetailService.save(loginDetail);
+
+            // create Login History
+            loginHistoryService.createLoginHistory(registration, ipAddress, Boolean.TRUE);
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+          response.setData(responseBean);
+          response.setStatus(1);
+
+        } else
+          response.setError("Registration not found.");
+
+      } else
+        response.setError("Authentication not found.");
+
+    } catch (Exception e) {
+      response.setError("Error in login.");
+      e.printStackTrace();
+    }
+    System.out.println("web app login");
+    return response;
+  }
+
+  @RequestMapping(value = "/loginFailure", method = RequestMethod.GET)
+  public @ResponseBody String loginFailure(LoginHistory loginHistory) {
+
+    System.out.println("calling out login failue");
+    String result = "fail";
+    String ipAddress = null;
+
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+    try {
+      loginHistory = loginHistory == null ? new LoginHistory() : loginHistory;
+      ipAddress = ((CustomWebAuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails()).getIpAddress();
+
+    } catch (Exception e) {
+    }
+
+    // save login history
+    try {
+
+      loginHistory.setLoginTime(new Date());
+      loginHistory.setIpAddress(ipAddress);
+      loginHistory.setName(auth.getName());
+
+      loginHistoryService.save(loginHistory);
+
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+    return result;
+  }
+
+  @RequestMapping(value = "/logoutSuccess", method = RequestMethod.GET)
+  public ModelAndView logoutSuccess(HttpServletRequest request, HttpServletResponse response) {
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    ModelAndView modelAndView = new ModelAndView();
+    System.out.println("Inside web child logout");
+    if (auth != null) {
+      new SecurityContextLogoutHandler().logout(request, response, auth);
+    }
+    modelAndView.setViewName("redirect:/");
+    return modelAndView;
+  }
+
+  @RequestMapping(value = "/new_token", method = RequestMethod.GET)
+  public @ResponseBody String newToken(HttpServletRequest request, HttpServletResponse response) {
+    System.out.println("csrftoken");
+    CsrfToken token = (CsrfToken) request.getAttribute("_csrf");
+    // Spring Security will allow the Token to be included in this header
+    // name
+    response.setHeader("X-CSRF-HEADER", token.getHeaderName());
+    // Spring Security will allow the token to be included in this parameter
+    // name
+    response.setHeader("X-CSRF-PARAM", token.getParameterName());
+    // this is the value of the token to be included as either a header or
+    // an HTTP parameter
+    response.setHeader("X-CSRF-TOKEN", token.getToken());
+    return token.getToken();
+  }
+
+  @RequestMapping(value = "/getDecryptedText", method = RequestMethod.GET)
+  public @ResponseBody String decryptText(@RequestParam("text_url") String textUrl, AES aes) {
+
+    try {
+      System.out.println("text url is:" + textUrl);
+      textUrl = aes.decrypt(textUrl);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return textUrl;
+  }
+
+  @RequestMapping(value = "/contactus_kids", method = RequestMethod.POST)
+  public ModelAndView saveContactUs(RedirectAttributes redirectAttributes, @RequestParam(name = "g-recaptcha-response") String gRecaptchaResponse, @ModelAttribute("contactUs") ContactUs contactUs, ModelAndView modelAndView) {
+    String message = null;
+    boolean flag = false;
+    String redirectURL = "redirect:/contact-us";
+
+    System.out.println("Hi Meet " + gRecaptchaResponse);
+
+    try {
+      if (gRecaptchaResponse != null && !"".equals(gRecaptchaResponse)) {
+
+        flag = commonUtility.verifyReCaptcha(gRecaptchaResponse, captchaSiteKey, captchaSecret, captchURL);
+        System.out.println("captcha verified: " + flag);
+        if (flag) {
+          flag = false;
+          message = validateContactUs(contactUs);
+          if (message == null) {
+            contactUs = contactUsService.processContactUs(contactUs, supportTo);
+            if (contactUs != null) {
+              flag = true;
+              message = "Message sent successfully!!";
+              contactUs = new ContactUs();
+            }
+          }
+        } else {
+          message = "Captcha not verified!!";
+        }
+      } else {
+        message = "Please verify captcha first!!";
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+      message = "Message not sent successfully!!";
+    }
+    redirectAttributes.addFlashAttribute("contactUs", contactUs);
+    redirectAttributes.addFlashAttribute("message", message);
+    redirectAttributes.addFlashAttribute("flag", flag);
+
+    if (flag)
+      redirectURL = "redirect:/thank-you";
+
+    modelAndView.setViewName(redirectURL);
+    return modelAndView;
+  }
+
+  public String validateContactUs(ContactUs contactUs) {
+    String error = null;
+
+    if (contactUs != null) {
+
+      if (contactUs.getFirstName() == null && !"".equals(contactUs.getFirstName().trim()))
+        error = "Please Enter valid first name!!";
+      else if (contactUs.getLastName() == null || "".equals(contactUs.getLastName()))
+        error = "Please Enter valid last name!!";
+      else if (contactUs.getEmail() == null && EMAIL_VALIDATION_PATTERN.matcher(contactUs.getEmail()).matches())
+        error = "Please Enter valid email!!";
+      else if (contactUs.getMobile() == null && MOBILE_VALIDATION_PATTERN.matcher(contactUs.getMobile()).matches())
+        error = "Please Enter valid mobile!!";
+      else if (contactUs.getMessage() == null || "".equals(contactUs.getMessage()))
+        error = "Please Enter valid message!!";
+
+    } else {
+      error = "Please provide valid contact information!!";
+    }
+
+    return error;
+  }
+
+  @RequestMapping(value = "/request-demo-kids", method = RequestMethod.POST)
+  public ModelAndView saveRequestDemo(RedirectAttributes redirectAttributes, @RequestParam(name = "g-recaptcha-response") String gRecaptchaResponse, @ModelAttribute("requestDemo") RequestDemo requestDemo, ModelAndView modelAndView) {
+    String message = null;
+    boolean flag = false;
+    String redirectURL = "redirect:/request-a-demo";
+
+    try {
+      if (gRecaptchaResponse != null && !"".equals(gRecaptchaResponse)) {
+
+        flag = commonUtility.verifyReCaptcha(gRecaptchaResponse, captchaSiteKey, captchaSecret, captchURL);
+        System.out.println("captcha verified: " + flag);
+        if (flag) {
+          flag = false;
+          message = validateRequestDemo(requestDemo);
+          if (message == null) {
+            requestDemo = requestDemoService.processRequestDemo(requestDemo, supportTo);
+            if (requestDemo != null) {
+              flag = true;
+              message = "Message sent successfully!!";
+              requestDemo = new RequestDemo();
+            }
+          }
+        } else {
+          message = "Captcha not verified!!";
+        }
+      } else {
+        message = "Please verify captcha first!!";
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+      message = "Message not sent successfully!!";
+    }
+    redirectAttributes.addFlashAttribute("requestDemo", requestDemo);
+    redirectAttributes.addFlashAttribute("message", message);
+    redirectAttributes.addFlashAttribute("flag", flag);
+
+    if (flag)
+      redirectURL = "redirect:/thank-you";
+
+    modelAndView.setViewName(redirectURL);
+    return modelAndView;
+  }
+
+  @RequestMapping(value = "/sales-inquiry", method = RequestMethod.POST)
+  public ModelAndView saveSalesInquiry(RedirectAttributes redirectAttributes, @ModelAttribute("salesInquiry") SalesInquiry salesInquiry, ModelAndView modelAndView) {
+    String message = null;
+    boolean flag = false;
+    String redirectURL = "redirect:/sales-inquiry";
+
+    try {
+      if (salesInquiry.getWorkplace() == null || salesInquiry.getWorkplace().getId() == null)
+        salesInquiry.setWorkplace(null);
+
+      message = validateSalesInquiry(salesInquiry);
+      if (message == null) {
+        salesInquiry = salesInquiryService.processSalesInquiry(salesInquiry, supportTo);
+        if (salesInquiry != null) {
+          flag = true;
+          message = "Message sent successfully!!";
+          salesInquiry = new SalesInquiry();
+        }
+      }
+
+    } catch (Exception e) {
+      e.printStackTrace();
+      message = "Message not sent successfully!!";
+    }
+    redirectAttributes.addFlashAttribute("salesInquiry", salesInquiry);
+    redirectAttributes.addFlashAttribute("message", message);
+    redirectAttributes.addFlashAttribute("flag", flag);
+
+    if (flag)
+      redirectURL = "redirect:/thank-you";
+
+    modelAndView.setViewName(redirectURL);
+    return modelAndView;
+  }
+
+  @RequestMapping(value = "/customer-support", method = RequestMethod.POST)
+  public ModelAndView saveCustomerSupport(RedirectAttributes redirectAttributes, @ModelAttribute("customerSupport") CustomerSupport customerSupport, ModelAndView modelAndView) {
+    String message = null;
+    boolean flag = false;
+    String redirectURL = "redirect:/customer-support";
+
+    try {
+
+      message = validateCustomerSupport(customerSupport);
+      if (message == null) {
+        customerSupport = customerSupportService.processCustomerSupport(customerSupport, supportTo);
+        if (customerSupport != null) {
+          flag = true;
+          message = "Message sent successfully.";
+          customerSupport = new CustomerSupport();
+        }
+      }
+
+    } catch (Exception e) {
+      e.printStackTrace();
+      message = "Message not sent successfully.";
+    }
+    redirectAttributes.addFlashAttribute("customerSupport", customerSupport);
+    redirectAttributes.addFlashAttribute("message", message);
+    redirectAttributes.addFlashAttribute("flag", flag);
+
+    if (flag)
+      redirectURL = "redirect:/thank-you";
+
+    modelAndView.setViewName(redirectURL);
+    return modelAndView;
+  }
+
+  public String validateRequestDemo(RequestDemo requestDemo) {
+    String error = null;
+
+    if (requestDemo != null) {
+
+      if (requestDemo.getFirstName() == null && !"".equals(requestDemo.getFirstName().trim()))
+        error = "Please Enter valid first name!!";
+      else if (requestDemo.getLastName() == null || "".equals(requestDemo.getLastName()))
+        error = "Please Enter valid last name!!";
+      else if (requestDemo.getEmail() == null && EMAIL_VALIDATION_PATTERN.matcher(requestDemo.getEmail()).matches())
+        error = "Please Enter valid email!!";
+      else if (requestDemo.getMobile() == null && MOBILE_VALIDATION_PATTERN.matcher(requestDemo.getMobile()).matches())
+        error = "Please Enter valid mobile!!";
+      else if (requestDemo.getMessage() == null || "".equals(requestDemo.getMessage()))
+        error = "Please Enter valid message!!";
+
+    } else {
+      error = "Please provide valid request demo information!!";
+    }
+
+    return error;
+  }
+
+  public String validateSalesInquiry(SalesInquiry salesInquiry) {
+    String error = null;
+
+    if (salesInquiry != null) {
+
+      if (salesInquiry.getFirstName() == null && !"".equals(salesInquiry.getFirstName().trim()))
+        error = "Please Enter valid first name!!";
+      else if (salesInquiry.getLastName() == null || "".equals(salesInquiry.getLastName()))
+        error = "Please Enter valid last name!!";
+      else if (salesInquiry.getEmail() == null && EMAIL_VALIDATION_PATTERN.matcher(salesInquiry.getEmail()).matches())
+        error = "Please Enter valid email!!";
+      else if (salesInquiry.getMobile() == null && MOBILE_VALIDATION_PATTERN.matcher(salesInquiry.getMobile()).matches())
+        error = "Please Enter valid mobile!!";
+      else if (salesInquiry.getComment() == null || "".equals(salesInquiry.getComment()))
+        error = "Please Enter valid message!!";
+      else if (salesInquiry.getState() == null || salesInquiry.getState().getId() == null || "".equals(salesInquiry.getState().getId()))
+        error = "Please Enter valid state!!";
+      else if (salesInquiry.getCity() == null || salesInquiry.getCity().getId() == null || "".equals(salesInquiry.getCity().getId()))
+        error = "Please Enter valid city!!";
+
+    } else {
+      error = "Please provide valid sales inquiry information!!";
+    }
+
+    return error;
+  }
+
+  public String validateCustomerSupport(CustomerSupport customerSupport) {
+    String error = null;
+
+    if (customerSupport != null) {
+
+      if (customerSupport.getFirstName() == null && !"".equals(customerSupport.getFirstName().trim()))
+        error = "Please Enter valid first name!!";
+      else if (customerSupport.getLastName() == null || "".equals(customerSupport.getLastName()))
+        error = "Please Enter valid last name!!";
+      else if (customerSupport.getUsername() == null && !"".equals(customerSupport.getUsername().trim()))
+        error = "Please Enter valid username!!";
+      else if (customerSupport.getHelpDescription() == null && !"".equals(customerSupport.getUsername().trim()))
+        error = "Please Enter valid help description!!";
+      else if (customerSupport.getState() == null || customerSupport.getState().getId() == null || "".equals(customerSupport.getState().getId()))
+        error = "Please Enter valid state!!";
+      else if (customerSupport.getCity() == null || customerSupport.getCity().getId() == null || "".equals(customerSupport.getCity().getId()))
+        error = "Please Enter valid city!!";
+
+    } else {
+      error = "Please provide valid customer support information!!";
+    }
+
+    return error;
+  }
+
+}
