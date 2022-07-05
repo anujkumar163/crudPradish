@@ -1,0 +1,189 @@
+package com.praadis.edu.service;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import com.praadis.cms.util.DataTableRequestDTO;
+import com.praadis.edu.beans.SchoolClassBean;
+import com.praadis.edu.model.AppPackage;
+import com.praadis.edu.model.AppState;
+import com.praadis.edu.model.SchoolClass;
+import com.praadis.edu.repository.AppPackageRepository;
+import com.praadis.edu.repository.SchoolClassRepository;
+import com.praadis.edu.util.GenericResponse;
+import org.springframework.cache.annotation.Cacheable;
+
+@Service
+public class SchoolClassService {
+
+	private static final Logger log = Logger.getLogger(SchoolClassService.class);
+
+	@Autowired
+	private SchoolClassRepository schoolClassRepository;
+	@Autowired
+	private AppPackageRepository appPackageRepository;
+
+	@Cacheable("schoolClassList")
+	public List<SchoolClass> findAll() {
+		// System.out.println("chal raha hu main schoolClassList ");
+		List<SchoolClass> schoolclassList = schoolClassRepository.findAll();
+
+		return schoolclassList;
+	}
+
+	@Transactional
+	public SchoolClass save(SchoolClass schoolClass) {
+
+		return schoolClassRepository.save(schoolClass);
+	}
+
+	public SchoolClass findById(Integer id) {
+
+		return schoolClassRepository.getOne(id);
+	}
+
+	public List<SchoolClass> findByBoard(Integer board) {
+
+		// return schoolClassRepository.findByBoard(board);
+		return null;
+	}
+
+	public SchoolClass findByName(String name) {
+
+		return schoolClassRepository.findByName(name);
+	}
+
+	private void deleteSchoolClass(SchoolClass schoolClass) {
+		schoolClassRepository.delete(schoolClass);
+	}
+
+	public SchoolClass findStreamSubjectsOfSchoolClass(Integer id, String stream) {
+		SchoolClass schoolClass = null;
+
+		if (stream == null) {
+			schoolClass = schoolClassRepository.getOne(id);
+		} else {
+			// if(stream.equalsIgnoreCase("PCM")){
+			// schoolClass = schoolClassRepository.findSubjectsPCMTrueById(id);
+			//
+			// } else if(stream.equalsIgnoreCase("PCB")){
+			// schoolClass = schoolClassRepository.findSubjectsPCBTrueById(id);
+			//
+			// } else if(stream.equalsIgnoreCase("COMMERCE")){
+			// schoolClass = schoolClassRepository.findSubjectsCOMMERCETrueById(id);
+			//
+			// } else if(stream.equalsIgnoreCase("ARTS")){
+			// schoolClass = schoolClassRepository.findSubjectsARTSTrueById(id);
+			// }
+		}
+
+		return schoolClass;
+	}
+
+	public List<SchoolClass> findByAppState(int appState) {
+		if (appState == 2)
+			return schoolClassRepository.findByAppState(appState).stream()
+					.filter(s -> Integer.parseInt(s.getName()) <= 9).collect(Collectors.toList());
+		else
+			return schoolClassRepository.findByAppState(appState);
+	}
+
+	public SchoolClass getSchoolClassById(Integer schoolClassById) {
+		System.out.println("School class : " + schoolClassById);
+		return schoolClassRepository.getOne(schoolClassById);
+	}
+
+	private List<SchoolClass> findByNameAndAppStateIdAndIdNot(String name, Integer appState, Integer id) {
+		return schoolClassRepository.findByNameAndAppState_IdAndIdNot(name, appState, id);
+	}
+
+	public List<SchoolClass> findDatatableSchoolClasses(DataTableRequestDTO tableRequestDTO) {
+		Page<SchoolClass> page = null;
+
+		Pageable pageable = PageRequest.of(tableRequestDTO.getPage(), tableRequestDTO.getLength(),
+				Sort.by(Direction.fromString(tableRequestDTO.getSortDir().toUpperCase()), tableRequestDTO.getSortBy()));
+
+		page = schoolClassRepository.findAll(pageable);
+
+		return page.getContent();
+	}
+
+	public Long count() {
+
+		return schoolClassRepository.count();
+	}
+
+	@Transactional
+	public GenericResponse createSchoolClass(AppState appState, SchoolClassBean schoolClassBean,
+			GenericResponse response) {
+		SchoolClass SchoolClass = new SchoolClass();
+		SchoolClass.setId(schoolClassBean.getId());
+		SchoolClass.setName(schoolClassBean.getName());
+		SchoolClass.setAppState(appState);
+		SchoolClass = save(SchoolClass);
+		response.setStatus(1);
+		response.setData(SchoolClass);
+		return response;
+	}
+
+	public GenericResponse validate(SchoolClassBean schoolClassBean, GenericResponse response) {
+
+		if (schoolClassBean == null) {
+			log.info("Data can not be null.");
+			response.setError("Data can not be null.");
+			return response;
+		}
+
+		List<SchoolClass> schoolClasses = Collections.emptyList();
+		log.info("school class id: " + schoolClassBean.getId());
+		if (schoolClassBean.getAppState() == 0 || StringUtils.isEmpty(schoolClassBean.getName())) {
+			log.info("Please provide school class name or app state name.");
+			response.setError("Please provide school class name and app state name.");
+			return response;
+		}
+
+		if (schoolClassBean.getId() == null)
+			schoolClassBean.setId(0);
+
+		schoolClasses = findByNameAndAppStateIdAndIdNot(schoolClassBean.getName(), schoolClassBean.getAppState(),
+				schoolClassBean.getId());
+		if (CollectionUtils.isNotEmpty(schoolClasses) && schoolClasses.size() >= 1) {
+			log.info("Please provide unique school class name.");
+			response.setError("Please provide unique school class name.");
+		}
+
+		return response;
+	}
+
+	public SchoolClass findByNameAndAppStateId(String name) {
+
+		return schoolClassRepository.findByNameAndAppStateId(name, 1);
+	}
+
+	public List<SchoolClass> findByName() {
+		return schoolClassRepository.findByName();
+	}
+
+	public SchoolClass findSchoolClassById(Integer id) {
+		return schoolClassRepository.findSchoolClassById(id);
+	}
+
+	public AppPackage findByAppPackageId(Integer id) {
+		return appPackageRepository.findByAppPackageId(id);
+	}
+
+}
