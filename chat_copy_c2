@@ -1,0 +1,205 @@
+package com.praadis.edu.controller;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.praadis.edu.model.ContactUs;
+import com.praadis.edu.model.FreeSolutionWritter;
+import com.praadis.edu.model.SchoolClass;
+import com.praadis.edu.service.ContactUsService;
+import com.praadis.edu.service.CountryService;
+import com.praadis.edu.service.FreeSolutionWritterService;
+import com.praadis.edu.service.SchoolClassService;
+
+@Controller
+@RequestMapping("/clat")
+public class ClatController {
+
+	@Autowired
+	private CountryService countryService;
+
+	@Autowired
+	private FreeSolutionWritterService freeSolutionWritterService;
+
+	@Autowired
+	private SchoolClassService schoolClassService;
+
+	@Autowired
+	ContactUsService contactUsService;
+
+	@RequestMapping(value = "", method = RequestMethod.GET)
+	public ModelAndView neet(ModelAndView modelAndView, HttpServletResponse response) {
+		try {
+			System.out.println("Hello Clat ");
+			modelAndView.addObject("countries", countryService.findAll());
+			List<FreeSolutionWritter> freeSolutionWritters1 = freeSolutionWritterService.getGroupByName();
+			List<SchoolClass> schoolClasses1 = schoolClassService.findByAppState(1);
+			modelAndView.addObject("schoolClasses1", schoolClasses1);
+			modelAndView.addObject("freeSolutionWritters1", freeSolutionWritters1);
+			modelAndView.setViewName("clat_main");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return modelAndView;
+	}
+
+	@RequestMapping(value = "/about-clat", method = RequestMethod.GET)
+	public ModelAndView abouClat(ModelAndView modelAndView, HttpServletResponse response) {
+		try {
+			System.out.println("abouClat");
+			modelAndView.addObject("countries", countryService.findAll());
+			List<FreeSolutionWritter> freeSolutionWritters1 = freeSolutionWritterService.getGroupByName();
+			List<SchoolClass> schoolClasses1 = schoolClassService.findByAppState(1);
+			modelAndView.addObject("schoolClasses1", schoolClasses1);
+			modelAndView.addObject("freeSolutionWritters1", freeSolutionWritters1);
+			modelAndView.setViewName("about_clat");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return modelAndView;
+	}
+
+	@RequestMapping(value = "/clat-syllabus", method = RequestMethod.GET)
+	public ModelAndView clatSyllabus(ModelAndView modelAndView, HttpServletResponse response) {
+		try {
+			System.out.println("clat-syllabus");
+			modelAndView.addObject("countries", countryService.findAll());
+			List<FreeSolutionWritter> freeSolutionWritters1 = freeSolutionWritterService.getGroupByName();
+			List<SchoolClass> schoolClasses1 = schoolClassService.findByAppState(1);
+			modelAndView.addObject("schoolClasses1", schoolClasses1);
+			modelAndView.addObject("freeSolutionWritters1", freeSolutionWritters1);
+			modelAndView.setViewName("clat_syllabus");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return modelAndView;
+	}
+
+	@RequestMapping(value = "/clat-eligibility", method = RequestMethod.GET)
+	public ModelAndView clatEligibility(ModelAndView modelAndView, HttpServletResponse response) {
+		try {
+			System.out.println("abouClat");
+			modelAndView.addObject("countries", countryService.findAll());
+			List<FreeSolutionWritter> freeSolutionWritters1 = freeSolutionWritterService.getGroupByName();
+			List<SchoolClass> schoolClasses1 = schoolClassService.findByAppState(1);
+			modelAndView.addObject("schoolClasses1", schoolClasses1);
+			modelAndView.addObject("freeSolutionWritters1", freeSolutionWritters1);
+			modelAndView.setViewName("clat_eligibility");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return modelAndView;
+	}
+
+	@RequestMapping(value = "/clat-admit-card", method = RequestMethod.GET)
+	public ModelAndView clatAdmitCard(ModelAndView modelAndView, HttpServletResponse response) {
+		try {
+			System.out.println("clat-admit-card");
+			modelAndView.addObject("countries", countryService.findAll());
+			List<FreeSolutionWritter> freeSolutionWritters1 = freeSolutionWritterService.getGroupByName();
+			List<SchoolClass> schoolClasses1 = schoolClassService.findByAppState(1);
+			modelAndView.addObject("schoolClasses1", schoolClasses1);
+			modelAndView.addObject("freeSolutionWritters1", freeSolutionWritters1);
+			modelAndView.setViewName("clat_admit_card");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return modelAndView;
+	}
+
+	@RequestMapping(value = "/clat-exam-pattern", method = RequestMethod.GET)
+	public ModelAndView clatExamPattern(ModelAndView modelAndView, HttpServletResponse response) {
+		try {
+			System.out.println("clat-exam-pattern");
+			modelAndView.addObject("countries", countryService.findAll());
+			List<FreeSolutionWritter> freeSolutionWritters1 = freeSolutionWritterService.getGroupByName();
+			List<SchoolClass> schoolClasses1 = schoolClassService.findByAppState(1);
+			modelAndView.addObject("schoolClasses1", schoolClasses1);
+			modelAndView.addObject("freeSolutionWritters1", freeSolutionWritters1);
+			modelAndView.setViewName("clat_exam_pattern");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return modelAndView;
+	}
+
+	@RequestMapping(value = "clat-2020-question-paper", method = RequestMethod.GET)
+	public ModelAndView jeeMain2019QuestionPaper(ModelAndView modelAndView, HttpServletRequest request) {
+		try {
+			System.out.println("clat-2020-question-paper");
+			List<FreeSolutionWritter> freeSolutionWritters1 = freeSolutionWritterService.getGroupByName();
+			List<SchoolClass> schoolClasses1 = schoolClassService.findByAppState(1);
+
+			Boolean isMobileExist = false;
+			Cookie[] cookies = request.getCookies();
+			if (cookies != null) {
+				for (int i = 0; i < cookies.length; i++) {
+					if (cookies[i].getName().equals("userMobile")) {
+						String mobile = cookies[i].getValue();
+						ContactUs contactUs = contactUsService.findByMobile(mobile);
+						if (contactUs != null && contactUs.getMobile() != null) {
+							isMobileExist = true;
+						}
+					}
+				}
+			}
+			modelAndView.addObject("isMobileExist", isMobileExist);
+			modelAndView.addObject("countries", countryService.findAll());
+			modelAndView.addObject("schoolClasses1", schoolClasses1);
+			modelAndView.addObject("freeSolutionWritters1", freeSolutionWritters1);
+			modelAndView.setViewName("clat_2020_question_paper");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return modelAndView;
+	}
+
+	@RequestMapping(value = "/saveCLAT2020", method = RequestMethod.POST)
+	public ModelAndView saveJee2020(@ModelAttribute("contactUs") ContactUs contactUs, ModelAndView modelAndView,
+			HttpSession session, HttpServletRequest request, HttpServletResponse response) {
+
+		System.out.println("contactUs  contactUs " + contactUs);
+
+		try {
+
+			ContactUs contactUs1 = contactUsService.findByMobile(contactUs.getMobile());
+			if (contactUs1 == null) {
+				contactUs.setIsDownload(true);
+				contactUs = contactUsService.save(contactUs);
+
+			}else if (contactUs1 != null) {
+				contactUs.setId(contactUs1.getId());
+				contactUs.setIsDownload(true);
+				contactUs.setDoc(LocalDateTime.now());
+				contactUs = contactUsService.save(contactUs);
+			}
+
+			String[] mobile = null;
+			// mobile = contactUs.getMobile();
+
+			Cookie cookie = new Cookie("userMobile", contactUs.getMobile());
+			// cookie.setMaxAge(60 * 10);
+			cookie.setMaxAge(7 * 24 * 60 * 60);
+			response.addCookie(cookie);
+
+			modelAndView.setViewName("redirect:/clat/clat-2020-question-paper");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return modelAndView;
+	}
+}
