@@ -1,0 +1,63 @@
+package com.praadis.edu.repository;
+
+import java.util.List;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import com.praadis.edu.model.AppPackage;
+import com.praadis.edu.model.SchoolClass;
+
+public interface SchoolClassRepository extends JpaRepository<SchoolClass, Integer> {
+
+	@Query("select sc from SchoolClass as sc")
+	public List<SchoolClass> findAll();
+	
+	//@Query("select new com.praadis.edu.model.Subject(s.id, s.name) from SchoolClass as sc join sc.streams as st join st.subjects as s where sc.id =?1 ")
+	//public List<Subject> findSubjectById(Integer id);
+	
+	//@Query("select new com.praadis.edu.model.Subject(s.id, s.name) from SchoolClass as sc join sc.streams as st join st.subjects as s where sc.id =?2 and st.id =?1 ")
+	//public List<Subject> findSubjectByStreamsAndId(Integer stream, Integer id);
+	
+//	@Query("select sc from SchoolClass as sc join fetch sc.subjects s where s.PCM=1 and sc.id =?1")
+//	public SchoolClass findSubjectsPCMTrueById(Integer id); 
+//	
+//	@Query("select sc from SchoolClass as sc join fetch sc.subjects s where s.PCB=1 and sc.id =?1")
+//	public SchoolClass findSubjectsPCBTrueById(Integer id);
+//	
+//	@Query("select sc from SchoolClass as sc join fetch sc.subjects s where s.COMMERCE=1 and sc.id =?1")
+//	public SchoolClass findSubjectsCOMMERCETrueById(Integer id);
+//	
+//	@Query("select sc from SchoolClass as sc join fetch sc.subjects s where s.ARTS=1 and sc.id =?1")
+//	public SchoolClass findSubjectsARTSTrueById(Integer id);
+	
+	public SchoolClass findByName(String name);
+	
+//	@Query("select sc from SchoolClass as sc where sc.board.id=?1")
+//	public List<SchoolClass> findByBoard(@Param("baord") Integer boardId);
+	
+	@Query("select new SchoolClass(sc.id, sc.name, sc.imgPath) from SchoolClass sc where sc.appState.id =?1")
+	public List<SchoolClass> findByAppState(int appState);
+	
+//	public SchoolClass findOne(Integer schoolClassId);
+	
+	public List<SchoolClass> findByNameAndAppState_Id(String name, Integer appStateId);
+	
+	public Page<SchoolClass> findAll(Pageable pageable);
+
+	public List<SchoolClass> findByNameAndAppState_IdAndIdNot(String name, Integer appState, Integer id);
+	
+	public SchoolClass findByNameAndAppStateId(String name,Integer appState);
+	
+	@Query(value = "SELECT * FROM `school_class` group by name order by id ASC",nativeQuery = true)
+	public List<SchoolClass> findByName();
+	
+	public SchoolClass findSchoolClassById(Integer id);
+	
+	@Query(value = "SELECT * FROM `private_praadis_education`.`app_package` where id=?1" , nativeQuery = true)
+	public AppPackage findByAppPackageId(Integer id);
+	
+}
+   
