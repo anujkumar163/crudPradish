@@ -1,0 +1,44 @@
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+<link rel="stylesheet" href="path/to/font-awesome/css/font-awesome.min.css">
+<style>
+
+</style>
+
+</head>
+<body>
+<div>
+<form action="save" method="post">
+Question:
+<input type="text" name="que" ><br><br>
+Answer:
+<input type="text" name="ans" ><br><br>
+Mobile:
+<!--<input type="text" required pattern="[6-9]{1}[0-9]{9}">-->
+<input type="submit" value="save">
+
+</form>
+</div>
+<script>
+jQuery('#contactForm').on('submit',function(e){
+	jQuery.ajax({
+		url: 'popchat.jsp',
+		type:'post',
+		data: jQuery('#contactForm').serialized(),
+		success:function(result){
+			alert(result);
+			}
+		});
+		e.preventDefault();
+});
+
+</script>
+
+
+</body>
+</html>
