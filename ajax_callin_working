@@ -1,0 +1,60 @@
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+<script src="https://www.w3schools.com/lib/w3.js"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous" />
+</head>
+<body>
+<div id="demo">
+<h1>The ajax object</h1>
+
+<button type="button" onclick="loadDoc()">Change Content</button>
+</div>
+<div class="container">
+<div id='bodybox'>
+  	<div id='chatborder'>
+	<p id="chatlog5" class="chatlog">&nbsp;</p>
+    <p id="chatlog4" class="chatlog">&nbsp;</p>
+    <p id="chatlog3" class="chatlog">&nbsp;</p>
+    <p id="chatlog2" class="chatlog">&nbsp;</p>
+    <p id="chatlog1" class="chatlog">&nbsp;</p>
+	
+	<form  action="showchat"  method="post">
+	<input type="text" value="${que.ans}" placeholder="Hi there! Type here to talk to me."/><br><br><br>
+	Ask Ques:<input type="text" name="que" id="chatbox"  placeholder="Hi there! Type here to talk to me."/><br><br>
+	<input type="submit" value="ask me"><br><br>
+	<button type="button" id="fetchBtn">ask me</button>
+	
+	
+	</form>
+	
+	</div>
+	</div><br>
+
+	<p>
+	<button type="button"  id ="hidebtn" class="btn btn-info" onclick="w3.toggleShow('#bodybox')">ChatBot</button>
+	</p>
+	</div>
+
+<script>
+function loadDoc(){
+	var xhttp = new XMLHttpRequest();
+	xhttp.onreadystatechange = function(){
+		if(this.readyState == 4 && this.status == 200){
+			document.getElementById("demo").innerHTML = this.responseText;
+		}
+	};
+	xhttp.open("GET","http://localhost:8092/education/chatbot/api/get/hi", true);
+	xhttp.send();
+	
+}
+</script>
+</body>
+</html>
