@@ -58,3 +58,20 @@ function loadDoc(){
 </script>
 </body>
 </html>
+<!--raghuvanshi--->
+$(document).ready(function() {
+$("#click").click(function() {
+name = $("#name").val();
+age = $("#age").val();
+$.ajax({
+type : "POST",
+url : "pageTwo.jsp",
+data : "name=" + name + "&age=" + age,
+success : function(data) {
+$("#response").html(data);
+}
+});
+}); 
+});
+<!--raghuvanshi-->
+
