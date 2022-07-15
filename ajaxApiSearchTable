@@ -1,0 +1,117 @@
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+<script src="https://www.w3schools.com/lib/w3.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous" />
+<style>
+table {
+    width: 50%;
+}
+th {
+    background: #f1f1f1;
+    font-weight: bold;
+    padding: 6px;
+}
+td {
+    background: #f9f9f9;
+    padding: 6px;
+}
+</style>
+</head>
+<body>
+
+<body>
+<button id="hide">Hide</button>
+<button id="show">Show</button>
+<input id="que" type="text" placeholder="Search..">
+<br><br>
+<table id="myTable">
+    <tr>
+        <th>ID:</th>
+        <th>Answer</th>
+        <th>Question</th>
+        
+    </tr>
+</table>
+  
+<script type="text/javascript">
+	  
+$(document).ready(function(){
+	//let p = document.getElementById("que").value;
+	 $("#hide").click(function(){
+    $("table").hide();
+    
+  });
+  $("#show").click(function(){
+    $("table").show();
+  });
+  $("#que").on("keyup", function() {
+    var value = $(this).val().toLowerCase();
+    $("#myTable tr").filter(function() {
+      $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+    });
+  });
+});
+$.ajax({
+    url: 'http://localhost:8080/location/api/list/',
+    dataType: 'json',
+    success: function(data) {
+        for (var i=0; i<data.length; i++) {
+            var row = $('<tr><td>' + data[i].id+ '</td><td>' + data[i].ans + '</td><td>' + data[i].que + '</td></tr>');
+            $('#myTable').append(row);
+        }
+    },
+   error: function(jqXHR, textStatus, errorThrown){
+        alert('Error: ' + textStatus + ' - ' + errorThrown);
+   }
+});
+</script>
+<!-- <script>
+    $(function(){
+        $("#btn").click(function(){
+            var $linkClicked = $(this);
+            var postid = $(this).attr("que");
+              $.ajax({
+                type:'POST',
+                url:'http://localhost:8080/location/api/get/hi',
+                data:'que='+que,
+                success:function(data){
+                   if(data=="you already liked this post"){
+                       alert(data);
+                     }
+                   else{
+                      $linkClicked.html(data);
+                      }
+                }
+            });
+
+        });
+    });
+
+</script>-->
+</body>
+</html>
+<!--raghuvanshi
+$(document).ready(function() {
+$("#click").click(function() {
+name = $("#name").val();
+age = $("#age").val();
+$.ajax({
+type : "POST",
+url : "pageTwo.jsp",
+data : "name=" + name + "&age=" + age,
+success : function(data) {
+$("#response").html(data);
+}
+});
+}); 
+});
+raghuvanshi-->
