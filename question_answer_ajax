@@ -1,0 +1,188 @@
+<jsp:include page="header_meta.jsp" />
+<title>About Us - Know About Complete Praadis Education App and Benefits.</title>
+<meta name="description" content="Know about Praadis Institute of Education application, how and when it started, what are the benefits etc here." />
+<meta property="og:title" content="About Us - Know About Complete Praadis Education App and Benefits." />
+<meta property="og:description" content="Know about Praadis Institute of Education application, how and when it started, what are the benefits etc here." />
+<meta name="twitter:description" content="Know about Praadis Institute of Education application, how and when it started, what are the benefits etc here." />
+<meta name="twitter:title" content="About Us - Know About Complete Praadis Education App and Benefits." />
+<link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/front_css/about-us.css" />
+<style>
+#askquediv {
+	display: none;
+}
+</style>
+</head>
+<body>
+	<jsp:include page="header_new.jsp" />
+	<%@ page contentType="text/html;charset=UTF-8" language="java"%>
+	<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags"%>
+	<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+	<section class="abt-section">
+		<div class="container">
+			<div class="row">
+				<div class="col-md-10">
+					<div class="input-group">
+						<input type="text" class="form-control searchquestion" placeholder="Search Question">
+						<div class="input-group-append">
+							<button class="btn btn-secondary search" type="button">
+								<i class="fa fa-search"></i>
+							</button>
+						</div>
+					</div>
+					<h4 id="sizes"></h4>
+					<div id="myform2" class="col-md-12">
+
+						<h5>Question</h5>
+
+						<h5>${freeObjectiveQuestion.question}</h5>
+						<ol class="list-group">
+							<c:if test="${size>1}">
+								<c:forEach var="i" begin="0" end="${size -1 }">
+									<li class="list-group-item list-group-item-success" style="border-top-left-radius: 4.25rem; border-top-right-radius: 4.25rem; border-bottom-left-radius: 4.25rem; border-bottom-right-radius: 4.25rem; position: relative; display: block; padding: 0.75rem 1.25rem; margin-bottom: -16px; background-color: #FFF; border: 3px solid rgba(0, 0, 0, 0.125);"><b>${i+1}</b> ${ freeObjectiveQuestion.freeObjectiveAnswers[i].answer}</li>
+									<br>
+								</c:forEach>
+							</c:if>
+						</ol>
+					</div>
+
+					<div class="col-md-12" id="myform1">
+						<ol class="list-group">
+							<li class="list-group-item list-group-item-info" style="border-top-left-radius: 4.25rem; border-top-right-radius: 4.25rem; border-bottom-left-radius: 4.25rem; border-bottom-right-radius: 4.25rem; position: relative; display: block; padding: 0.75rem 1.25rem; margin-bottom: -16px; background-color: #FFF; border: 3px solid rgba(0, 0, 0, 0.125);">
+								<h5>Solution</h5> ${freeObjectiveQuestion.explanation}
+							</li>
+						</ol>
+					</div>
+				</div>
+			</div>
+	</section>
+
+
+
+	<script type="text/javascript">
+		var timeout;
+		$(".searchquestion")
+				.keyup(
+						function() {
+							$('#myform2').html('');
+							$('#sizes').html('');
+							var question1 = $(".searchquestion").val();
+							if (question1.length > 1) {
+								if (timeout) {
+									clearTimeout(timeout);
+								}
+								timeout = setTimeout(
+										function() {
+											var question2 = $(".searchquestion")
+													.val();
+											var html1 = '';
+											var count = '';
+											var myKeyVals = JSON.stringify({
+												question : question2
+											});
+											//	alert(myKeyVals) 		 
+
+											$
+													.ajax({
+														url : "${pageContext.request.contextPath}/ask-an-expert/searching-question",
+														type : "POST",
+														dataType : "json",
+														contentType : "application/json; charset=utf-8",
+														data : myKeyVals,
+														success : function(
+																result) {
+															if (result.status == 0) {
+																html1 += '<p>No Data Found.</p>';
+																$('#myform2')
+																		.html(
+																				html1);
+															}
+															count = result.data.length;
+															$
+																	.each(
+																			result.data,
+																			function(
+																					key,
+																					value) {
+																				console
+																						.log(value);
+																				html1 += '<table class="table"><thead><tr><td scope="col"> <h5>'
+																						+ value.question
+																						+ '</h5></td> <td scope="col" align="right"><h5><a href="${pageContext.request.contextPath}/ask-an-expert/solutation/'+value.id+'" style="color:#249efb;"> View Solutation</a></h5></td></tr></thead></table>';
+
+																			});
+															$('#myform2').html(
+																	html1);
+															$('#sizes')
+																	.html(
+																			count
+																					+ "   search Result ");
+														},
+														error : function(err) {
+															// check the err for error details
+															alert("Some thing went wrong.");
+														}
+													});// end ajax calling
+
+										}, 500);//end timer
+							}//end if
+
+						});
+	</script>
+
+
+
+	<script type="text/javascript">
+		$(".search")
+				.click(
+						function() {
+							$('#myform2').html('');
+							$('#sizes').html('');
+							var question1 = $(".searchquestion").val();
+							var html1 = '';
+							var count = '';
+							var myKeyVals = JSON.stringify({
+								question : question1
+							});
+							//	alert(myKeyVals) 		 
+
+							$
+									.ajax({
+										url : "${pageContext.request.contextPath}/ask-an-expert/searching-question",
+										type : "POST",
+										dataType : "json",
+										contentType : "application/json; charset=utf-8",
+										data : myKeyVals,
+										success : function(result) {
+
+											if (result.status == 0) {
+												html1 += '<p>No Data Found.</p>';
+												$('#myform2').html(html1);
+											}
+											count = result.data.length;
+											$
+													.each(
+															result.data,
+															function(key, value) {
+																console
+																		.log(value);
+																html1 += '<table class="table"><thead><tr><td scope="col"> <h5>'
+																		+ value.question
+																		+ '</h5></td> <td scope="col" align="right"><h5><a href="${pageContext.request.contextPath}/ask-an-expert/solutation/'+value.id+'" style="color:#249efb;"> View Solutation</a></h5></td></tr></thead></table>';
+
+															});
+											$('#sizes')
+													.html(
+															count
+																	+ "   search Result ");
+											$('#myform2').html(html1);
+
+										},
+										error : function(err) {
+											// check the err for error details
+											alert("Some thing went wrong.");
+										}
+									});
+						});
+	</script>
+	<!-- end page-aboutus -->
+	<jsp:include page="footer_new.jsp" />
