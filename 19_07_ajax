@@ -1,0 +1,51 @@
+<form id="userForm">
+  <input type="text" id="que" name="que" placeholder="Enter question">
+  <input type="submit" value="Search">
+</form>
+<!-- the result of the search will be rendered inside this div -->
+<div id="result"></div>
+
+<div>
+<table id="myTable">
+    <tr>
+        <th>ID:</th>
+        <th>Answer</th>
+        <th>Question</th>
+        
+    </tr>
+</table>
+</div>
+
+ <script>
+ $( "#userForm" ).submit(function( event ) {
+	 
+	  
+	  event.preventDefault();
+	 
+	  
+	  var $form = $( this ),
+	    username = $form.find( "input[que='que']" ).val(),
+	    url = "http://localhost:8092/education/chatbot/api/get/que"+que;
+	 
+	  // Send the data using post
+	  var posting = $.post( url, { s: que } );
+	 
+	  //Ajax Function to send a get request
+	  $.ajax({
+	    type: "GET",
+	    url: "http://localhost:8092/education/chatbot/api/get/que"+que,
+	    dataType:"json",
+	    success: function(response){
+	        //if request if made successfully then the response represent the data
+			for (var i=0; i<data.length; i++) {
+            var row = $('<tr><td>' + data[i].id+ '</td><td>' + data[i].ans + '</td><td>' + data[i].que + '</td></tr>');
+            $('#myTable').append(row);
+            console.log('success',data);  
+        	}
+	        $( "#result" ).empty().append( response );
+	    }
+	  });
+	  
+	});
+
+</script> 
